@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-hs1xx-exporter-config
+  labels:
+    app: {{ template "hs1xx-exporter.fullname" . }}
+    chart: {{ template "hs1xx-exporter.chart" . }}
+    heritage: "{{ .Release.Service }}"
+    release: "{{ .Release.Name }}"
+data:
+  hs1xx-exporter.yaml: |-
+    {{- toYaml .Values.config | nindent 4 }}
