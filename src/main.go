@@ -106,27 +106,33 @@ func main() {
 			log.Debugf("Calling Energy func on %s", config.PlugIPs[i])
 			energyData, err := plug.Energy()
 			if err != nil {
-				log.Error(err)
+				log.Errorf("Energy func error: %s", err)
 			}
+			log.Debugf("energyData: %v", energyData)
 
 			log.Debugf("Calling Info func on %s", config.PlugIPs[i])
 			infoData, err := plug.Info()
 			if err != nil {
-				log.Error(err)
+				log.Errorf("Info func error: %s", err)
 			}
+			log.Debugf("infoData: %v", infoData)
 
-			hs1xxInfoRelayState.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.RelayState))
-			hs1xxInfoOnTimeSeconds.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.OnTimeSeconds))
-			hs1xxInfoSignalStrength.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.SignalStrength))
+			if (infoData != nil) && (energyData != nil) {
+				hs1xxInfoRelayState.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.RelayState))
+				hs1xxInfoOnTimeSeconds.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.OnTimeSeconds))
+				hs1xxInfoSignalStrength.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(infoData.SignalStrength))
 
-			hs1xxEnergyVoltageMv.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.MilliVolt))
-			hs1xxEnergyVolt.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.Volt))
-			hs1xxEnergyCurrentMa.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.MilliAmp))
-			hs1xxEnergyCurrentAmp.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.Amp))
-			hs1xxEnergyPowerMw.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.PowerUseMilliWatt))
-			hs1xxEnergyPowerW.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.PowerUseWatt))
-			hs1xxEnergyTotalWh.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.TotalMilliWatt))
-			hs1xxEnergyTotalW.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.TotalWatt))
+				hs1xxEnergyVoltageMv.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.MilliVolt))
+				hs1xxEnergyVolt.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.Volt))
+				hs1xxEnergyCurrentMa.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.MilliAmp))
+				hs1xxEnergyCurrentAmp.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.Amp))
+				hs1xxEnergyPowerMw.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.PowerUseMilliWatt))
+				hs1xxEnergyPowerW.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.PowerUseWatt))
+				hs1xxEnergyTotalWh.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.TotalMilliWatt))
+				hs1xxEnergyTotalW.With(prometheus.Labels{"ip": infoData.Address, "alias": infoData.Alias}).Set(float64(energyData.TotalWatt))
+			} else {
+				log.Errorf("Unable to retrieve data from %s", config.PlugIPs[i])
+			}
 		}
 		interval, _ := time.ParseDuration(config.MetricsInterval)
 		log.Debugf("Sleeping %v", interval)
